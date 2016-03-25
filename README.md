@@ -2,6 +2,14 @@
 Shiny app exploring code violation data in Syracuse. View at [blackspot.org.uk](http://blackspot.org.uk) or grab this repository and run locally with: 
 
 ```
+install.packages("dplyr")
+install.packages("DT")
+install.packages("ggplot2")
+install.packages("htmltools")
+install.packages("leaflet")
+install.packages("rcharts")
+install.packages("shiny")
+
 shiny::runGitHub("subartle/orangespot")
 ```
 
