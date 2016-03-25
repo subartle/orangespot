@@ -16,7 +16,7 @@ lat.lon <- na.omit( lat.lon )
 
 # SHINY APP SERVER
 
-shinyServer(function(input, output, session) {
+shinyServer(function(input, output) {   # , session
   
 
   
