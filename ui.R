@@ -8,12 +8,12 @@ shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
   tabPanel("Map",
     # div(class="outer",
 
-      tags$head(
-        includeScript("analytics.js"),
-        tags$link(rel = "stylesheet", type = "text/css",
-          href = "ion.rangeSlider.skinFlat.css"),
-        includeCSS("styles.css")
-      ),
+ #     tags$head(
+ #       includeScript("analytics.js"),
+ #       tags$link(rel = "stylesheet", type = "text/css",
+ #         href = "ion.rangeSlider.skinFlat.css"),
+ #       includeCSS("styles.css")
+ #     ),
 
       leafletOutput("mymap", width="100%", height="100%"),
 
