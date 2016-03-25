@@ -23,19 +23,30 @@ shinyServer(function(input, output, session) {
   output$mymap <- renderLeaflet({
     # build base map on load
         
-    l <- leaflet( data=lat.lon ) %>% 
-      addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
-      setView(lng=-76.13, lat=43.03, zoom=13) %>%
-      setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
+    syr.map <- leaflet(data=lat.lon ) %>% 
+                addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
+                setView(lng=-76.13, lat=43.03, zoom=13) %>%
+                setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
+
+    syr.map <- addCircles( syr.map, lng = lat.lon$lon, lat = lat.lon$lat )
     
-      l <- leafletProxy("mymap", session, data=lat.lon) %>%
-           addCircleMarkers(~lon, ~lat, 
-           radius=~2, 
-           fillOpacity=0.5,
-           color="steel blue", popup="your mom", fillColor = "gray",
-           layerId=paste0("p", 1:nrow(lat.lon))) %>%
-           
-    l
+    syr.map
+    
+    
+
+#    l <- leaflet( data=lat.lon ) %>% 
+#      addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
+#      setView(lng=-76.13, lat=43.03, zoom=13) %>%
+#      setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
+#    
+#      l <- leafletProxy("mymap", session, data=lat.lon) %>%
+#           addCircleMarkers(~lon, ~lat, 
+#           radius=~2, 
+#           fillOpacity=0.5,
+#           color="steel blue", popup="your mom", fillColor = "gray",
+#           layerId=paste0("p", 1:nrow(lat.lon))) %>%
+#           
+#    l
   })
   
   
