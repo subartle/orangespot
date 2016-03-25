@@ -5,9 +5,11 @@ library("leaflet")
 
 
 shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
-  tabPanel("Map",
-    div(class="outer",
+  
+  tabPanel("Map",  leafletOutput("mymap", width="100%", height="100%")  ) 
+    # div(class="outer",
 
+  ))
  #     tags$head(
  #       includeScript("analytics.js"),
  #       tags$link(rel = "stylesheet", type = "text/css",
@@ -15,7 +17,7 @@ shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
  #       includeCSS("styles.css")
  #     ),
 
-      leafletOutput("mymap", width="100%", height="100%")
+     
 
 
 #       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
@@ -31,7 +33,6 @@ shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
 #             target="_blank"))
 #       ))
 
-    ))
-  ))
+
   
   #, tabPanel("Table", DT::dataTableOutput("table"))
