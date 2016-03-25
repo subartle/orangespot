@@ -4,7 +4,7 @@ library("shiny")
 library("leaflet")
 
 
-shinyUI(navbarPage("Blackspot", id="nav", collapsible=T,
+shinyUI( navbarPage("Blackspot", id="nav", collapsible=T,
   tabPanel("Map",
     div(class="outer",
 
@@ -28,7 +28,7 @@ shinyUI(navbarPage("Blackspot", id="nav", collapsible=T,
           "the city of Edinburgh, UK. Data from",
           a("Edinburgh Open Data.",
             href="http://www.edinburghopendata.info/dataset/vehicle-collisions",
-            target="_blank")),
+            target="_blank"))
 
 
     )
