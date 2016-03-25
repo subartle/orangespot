@@ -6,10 +6,10 @@ library("leaflet")
 
 shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
   tabPanel("Map",
-    div(class="outer",
+    # div(class="outer",
 
       tags$head(
-        # includeScript("analytics.js"),
+        includeScript("analytics.js"),
         tags$link(rel = "stylesheet", type = "text/css",
           href = "ion.rangeSlider.skinFlat.css"),
         includeCSS("styles.css")
@@ -32,6 +32,6 @@ shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
 #       ))
 
     ))
-  ))
+  )#)
   
   #, tabPanel("Table", DT::dataTableOutput("table"))
