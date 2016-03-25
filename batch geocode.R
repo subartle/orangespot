@@ -106,7 +106,7 @@ getLatLon( res3 )
 
 library( ggmap )
 
-geocode( address.for.geocode )
+geocode( res3 )
 
 
 
