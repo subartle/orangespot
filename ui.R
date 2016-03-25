@@ -15,7 +15,7 @@ shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
  #       includeCSS("styles.css")
  #     ),
 
-      leafletOutput("mymap", width="100%", height="100%"),
+      leafletOutput("mymap", width="100%", height="100%")
 
 
 #       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
