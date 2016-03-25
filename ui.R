@@ -32,4 +32,6 @@ shinyUI( navbarPage("Orangespot", id="nav", collapsible=T,
 #       ))
 
     ))
-  ) #, tabPanel("Table", DT::dataTableOutput("table"))
+  ))
+  
+  #, tabPanel("Table", DT::dataTableOutput("table"))
