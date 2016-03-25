@@ -29,7 +29,7 @@ shinyUI( navbarPage("Blackspot", id="nav", collapsible=T,
           a("Edinburgh Open Data.",
             href="http://www.edinburghopendata.info/dataset/vehicle-collisions",
             target="_blank"))
-
+      ))
 
     )
   ) #, tabPanel("Table", DT::dataTableOutput("table"))
