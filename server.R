@@ -22,7 +22,6 @@ shinyServer(function(input, output, session) {
   
   output$mymap <- renderLeaflet({
     # build base map on load
-    ax <- getData()
         
     l <- leaflet( data=lat.lon ) %>% 
       addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
