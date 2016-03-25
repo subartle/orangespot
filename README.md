@@ -1,8 +1,8 @@
 # blackspot
-Shiny app exploring Edinburgh traffic collision data. View at [blackspot.org.uk](http://blackspot.org.uk) or grab this repository and run locally with: 
+Shiny app exploring code violation data in Syracuse. View at [blackspot.org.uk](http://blackspot.org.uk) or grab this repository and run locally with: 
 
 ```
-shiny::runGitHub("blmoore/blackspot")
+shiny::runGitHub("subartle/orangespot")
 ```
 
 Note `analytics.js` contains my Google analytics tracking code, you'll want to comment this out (i.e. `includeScript("analytics.js")` in `ui.R`) or swap in your own code if you're deploying this app!
