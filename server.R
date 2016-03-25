@@ -28,7 +28,7 @@ shinyServer(function(input, output, session) {
                 setView(lng=-76.13, lat=43.03, zoom=13) %>%
                 setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
 
-    syr.map <- addCircles( syr.map, lng = lat.lon$lon, lat = lat.lon$lat )
+   #  syr.map <- addCircles( syr.map, lng = lat.lon$lon, lat = lat.lon$lat )
     
     syr.map
     
