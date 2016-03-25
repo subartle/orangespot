@@ -33,5 +33,3 @@ shinyUI(navbarPage("Blackspot", id="nav", collapsible=T,
 
     )
   ) #, tabPanel("Table", DT::dataTableOutput("table"))
-)
-
