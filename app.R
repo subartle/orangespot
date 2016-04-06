@@ -11,11 +11,29 @@ code.severity <- read.csv("https://raw.githubusercontent.com/subartle/orangespot
 
 code.violations <- merge(code.violations, code.severity, by.x = "Code", by.y = "Row.Labels", all.x=T )
 
-code.violations$Severity[is.na(code.violations$Severity)] <- FALSE
+code.violations$Severity[is.na(code.violations$Severity)] <- "FALSE"
 
 lat.lon <- code.violations[ 5000:10000 , c("lat","lon") ] # sample for dev purposes
 
 lat.lon <- na.omit( lat.lon )
+
+#static color vectors
+col.vec.open.closed <- NULL
+col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Open", "orange", NA)
+col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Closed", "gray25", col.vec.open.closed  )
+
+# "#FF0000FF" "#FF5500FF" "#FFAA00FF" "#FFFF00FF" "#FFFF80FF"
+col.vec.severity <- NULL
+col.vec.severity <- ifelse( code.violations$Severity == "1", "#FFFF80FF", NA )
+col.vec.severity <- ifelse( code.violations$Severity == "2", "#FFFF00FF", col.vec.severity)
+col.vec.severity <- ifelse( code.violations$Severity == "3", "#FFAA00FF", col.vec.severity)
+col.vec.severity <- ifelse( code.violations$Severity == "4", "#FF5500FF", col.vec.severity)
+col.vec.severity <- ifelse( code.violations$Severity == "5", "#FF0000FF", col.vec.severity)
+col.vec.severity <- ifelse( code.violations$Severity == "0", "gray10", col.vec.severity)
+
+#Date Coversion
+
+
 
 #pop up 
 violation.description <- code.violations$Code 
@@ -27,23 +45,18 @@ my.server <- function(input, output)
 {  
   
   # color vectors
-  
-  col.vec.open.closed <- NULL
-  col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Open", "orange", NA  )
-  col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Closed", "gray25", col.vec.open.closed  )
-  
-  # "#FF0000FF" "#FF5500FF" "#FFAA00FF" "#FFFF00FF" "#FFFF80FF"
-  col.vec.severity <- NULL
-  col.vec.severity <- ifelse( code.violations$Severity == "1", "#FFFF80FF", NA )
-  col.vec.severity <- ifelse( code.violations$Severity == "2", "#FFFF00FF", col.vec.severity)
-  col.vec.severity <- ifelse( code.violations$Severity == "3", "#FFAA00FF", col.vec.severity)
-  col.vec.severity <- ifelse( code.violations$Severity == "4", "#FF5500FF", col.vec.severity)
-  col.vec.severity <- ifelse( code.violations$Severity == "5", "#FF0000FF", col.vec.severity)
-  col.vec.severity <- ifelse( code.violations$Severity == "FALSE", "gray10", col.vec.severity)
-  
-  col.vec <- NULL
-  col.vec <- ifelse(input$color == "Open/Closed", col.vec.open.closed, NA)
-  col.vec <- ifelse(input$color == "Severity", col.vec.severity, col.vec)
+col.vec <- reactive({
+    if(input$color == "Open/Closed")
+    {
+      col.vec <- col.vec.open.closed
+    }
+     if(input$color == "Severity")
+     {
+       col.vec <- col.vec.severity
+     }
+  })
+
+
   #col.vec <- ifelse(input$color == "Time to Close", col.vec.time.to.close, col.vec)
   #col.vec <- ifelse(input$color == "Days to Comply", col.vec.days.to.comply, col.vec)
   
@@ -51,7 +64,7 @@ my.server <- function(input, output)
     
     # build base map on load
     
-    syr.map <- leaflet(data=lat.lon ) %>% 
+    syr.map <- leaflet(data=code.violations ) %>% 
       addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
       setView(lng=-76.13, lat=43.03, zoom=13) %>%
       setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
@@ -59,10 +72,13 @@ my.server <- function(input, output)
    
     # syr.map <- addCircles( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=col.vec )
     
-    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col= col.vec, popup=violation.description )
+    output$color <- renderPlot({
+    
+    syr.map <- addCircleMarkers( syr.map, lng = code.violations$lon, lat = code.violations$lat, col = col.vec, popup=violation.description )
     
     syr.map
     
+  })
   })
   
 }
@@ -116,7 +132,7 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                                        start = as.Date("2010-01-01"), end = as.Date("2013-07-01")),
                                                         
                                                         selectInput("color", "Colour by:",
-                                                                    choices=c("Open/Closed", "Severity", "Time to Close", "Days to Comply")),
+                                                                    choices=c("Open/Closed", "Severity")), #, "Time to Close", "Days to Comply")),
                                                 
                                                         
                                                         sliderInput("slider", label="Severity:",
@@ -175,7 +191,7 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                             target="_blank")
                                                         ),
                                                         p("Project under development by ",
-                                                          a("Susannah Bartlett & Rory Tikalsky under the guidance of Professor Jesse Lecy, Maxwell School of Citizenship and Public Affairs.",
+                                                          p("Susannah Bartlett & Rory Tikalsky under the guidance of Professor Jesse Lecy, Maxwell School of Citizenship and Public Affairs.",
                                                           HTML("&mdash;"),
                                                           "see the full code on ",
                                                           a("github", href="http://github.com/blmoore/blackspot",
@@ -198,7 +214,7 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                               
                     ) # end of tabPanel "Map"
                     
-)
+))
 
 
 
@@ -212,8 +228,3 @@ shinyApp( ui=my.ui, server=my.server )
 #     stroke = TRUE, color = "#03F", weight = 5, opacity = 0.5, fill = TRUE, 
 #     fillColor = color, fillOpacity = 0.2, dashArray = NULL, popup = NULL, 
 #     options = pathOptions(), data = getMapData(map))
-
-
-
-
-
