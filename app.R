@@ -3,7 +3,6 @@ library("dplyr")
 library("leaflet")
 library("shiny")
 
-
 # DATA STEPS
 
 code.violations <- read.csv("https://raw.githubusercontent.com/subartle/orangespot/master/data/code%20violations.csv")
@@ -11,18 +10,51 @@ code.severity <- read.csv("https://raw.githubusercontent.com/subartle/orangespot
 
 code.violations <- merge(code.violations, code.severity, by.x = "Code", by.y = "Row.Labels", all.x=T )
 
-code.violations$Severity[is.na(code.violations$Severity)] <- "FALSE"
+code.violations$Severity[is.na(code.violations$Severity)] <- "FALSE"  #this makes the NA in severity 0
 
+#Convert to time class
+code.violations$Violation.Date <- as.Date(code.violations$Violation.Date,format = "%m/%d/%y")
+
+code.violations$Complaint.Close.Date <- as.Date(code.violations$Complaint.Close.Date, format = "%m/%d/%y")
+
+code.violations$Complaint.Date <- as.Date(code.violations$Complaint.Date, "%m/%d/%y")
+
+code.violations$Comply.By.Date <- as.Date(code.violations$Comply.By.Date, format = "%m/%d/%y")
+
+#new variables representing time between dates and getting rid of negative amounts (due to incorrect data entry)
+code.violations <- mutate(code.violations, TimeBetweenOCB = code.violations$Comply.By.Date - code.violations$Violation.Date)
+code.violations$TimeBetweenOCB[code.violations$TimeBetweenOCB < 0 ] <- NA
+
+code.violations <- mutate(code.violations, TimeBetweenCV = (code.violations$Complaint.Date - code.violations$Violation.Date) )
+code.violations$TimeBetweenCV[code.violations$TimeBetweenCV < 0 ] <- NA
+
+code.violations <- mutate(code.violations, TimeBetweenOC = (code.violations$Complaint.Close.Date - code.violations$Violation.Date))
+code.violations$TimeBetweenOC[code.violations$TimeBetweenOC < 0 ] <- NA
+
+code.violations$TimeBetweenOC[is.na(code.violations$TimeBetweenOC)] <- 9999  #this makes the NA in severity 0
+
+#lat.lon
 lat.lon <- code.violations[ 5000:10000 , c("lat","lon") ] # sample for dev purposes
 
 lat.lon <- na.omit( lat.lon )
 
 #static color vectors
+
+#color vector open closed
 col.vec.open.closed <- NULL
 col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Open", "orange", NA)
 col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Closed", "gray25", col.vec.open.closed  )
 
+
+#color vector severity
 # "#FF0000FF" "#FF5500FF" "#FFAA00FF" "#FFFF00FF" "#FFFF80FF"
+#trying to make color vectors in a worse way - it didn't work, delete before final product
+#severity.breaks <- c(0.5, 1.5, 2.5, 3.5 ,4.5, 5.5)
+#code.violations$Severity <- as.numeric(code.violations$Severity)
+#severity.labels <- c("gray10", "#FF0000FF", "#FF5500FF", "#FFAA00FF", "#FFFF00FF", "#FFFF80FF")
+#col.vec.severity <- as.character(cut(code.violations$Severity, breaks=severity.breaks, labels=heat.colors(6)))
+
+
 col.vec.severity <- NULL
 col.vec.severity <- ifelse( code.violations$Severity == "1", "#FFFF80FF", NA )
 col.vec.severity <- ifelse( code.violations$Severity == "2", "#FFFF00FF", col.vec.severity)
@@ -31,9 +63,16 @@ col.vec.severity <- ifelse( code.violations$Severity == "4", "#FF5500FF", col.ve
 col.vec.severity <- ifelse( code.violations$Severity == "5", "#FF0000FF", col.vec.severity)
 col.vec.severity <- ifelse( code.violations$Severity == "0", "gray10", col.vec.severity)
 
-#Date Coversion
+#color vector time between open closed - TOC
 
-
+col.vec.TOC <- NULL
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 0 & code.violations$TimeBetweenOC <= 60, "#FF0000FF", NA )
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 60 & code.violations$TimeBetweenOC <= 123, "#FF4000FF", col.vec.TOC)
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 123 & code.violations$TimeBetweenOC <= 186, "#FF8000FF", col.vec.TOC)
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 186 & code.violations$TimeBetweenOC <=249, "#FFBF00FF", col.vec.TOC)
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 249 & code.violations$TimeBetweenOC <= 312, "#FFFF00FF", col.vec.TOC)
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 312 & code.violations$TimeBetweenOC <= 400, "FFFF80FF", col.vec.TOC)
+col.vec.TOC <- ifelse( code.violations$TimeBetweenOC == 9999, "gray10", col.vec.TOC)
 
 #pop up 
 violation.description <- code.violations$Code 
@@ -43,28 +82,11 @@ violation.description <- code.violations$Code
 
 my.server <- function(input, output) 
 {  
-  
-  # color vectors
-col.vec <- reactive({
-    if(input$color == "Open/Closed")
-    {
-      col.vec <- col.vec.open.closed
-    }
-     if(input$color == "Severity")
-     {
-       col.vec <- col.vec.severity
-     }
-  })
-
-
-  #col.vec <- ifelse(input$color == "Time to Close", col.vec.time.to.close, col.vec)
-  #col.vec <- ifelse(input$color == "Days to Comply", col.vec.days.to.comply, col.vec)
-  
   output$mymap <- renderLeaflet({
     
     # build base map on load
     
-    syr.map <- leaflet(data=code.violations ) %>% 
+    syr.map <- leaflet(data=lat.lon ) %>% 
       addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
       setView(lng=-76.13, lat=43.03, zoom=13) %>%
       setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
@@ -74,7 +96,7 @@ col.vec <- reactive({
     
     output$color <- renderPlot({
     
-    syr.map <- addCircleMarkers( syr.map, lng = code.violations$lon, lat = code.violations$lat, col = col.vec, popup=violation.description )
+    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col = input$color, popup=violation.description )
     
     syr.map
     
@@ -132,7 +154,7 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                                        start = as.Date("2010-01-01"), end = as.Date("2013-07-01")),
                                                         
                                                         selectInput("color", "Colour by:",
-                                                                    choices=c("Open/Closed", "Severity")), #, "Time to Close", "Days to Comply")),
+                                                                    choices=list("Open/Closed" = "col.vec.open.closed", "Severity" = "col.vec.severity", "Time to Close" = "col.vec.TOC")), #"Days to Comply")),
                                                 
                                                         
                                                         sliderInput("slider", label="Severity:",
