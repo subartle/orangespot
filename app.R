@@ -3,6 +3,8 @@ library("dplyr")
 library("leaflet")
 library("shiny")
 
+
+
 # DATA STEPS
 
 code.violations <- read.csv("https://raw.githubusercontent.com/subartle/orangespot/master/data/code%20violations.csv")
@@ -33,6 +35,7 @@ code.violations$TimeBetweenOC[code.violations$TimeBetweenOC < 0 ] <- NA
 
 code.violations$TimeBetweenOC[is.na(code.violations$TimeBetweenOC)] <- 9999  #this makes the NA in severity 0
 
+
 #lat.lon
 lat.lon <- code.violations[ 5000:10000 , c("lat","lon") ] # sample for dev purposes
 
@@ -45,23 +48,13 @@ col.vec.open.closed <- NULL
 col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Open", "orange", NA)
 col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Closed", "gray25", col.vec.open.closed  )
 
-
-#color vector severity
-# "#FF0000FF" "#FF5500FF" "#FFAA00FF" "#FFFF00FF" "#FFFF80FF"
-#trying to make color vectors in a worse way - it didn't work, delete before final product
-#severity.breaks <- c(0.5, 1.5, 2.5, 3.5 ,4.5, 5.5)
-#code.violations$Severity <- as.numeric(code.violations$Severity)
-#severity.labels <- c("gray10", "#FF0000FF", "#FF5500FF", "#FFAA00FF", "#FFFF00FF", "#FFFF80FF")
-#col.vec.severity <- as.character(cut(code.violations$Severity, breaks=severity.breaks, labels=heat.colors(6)))
-
-
 col.vec.severity <- NULL
 col.vec.severity <- ifelse( code.violations$Severity == "1", "#FFFF80FF", NA )
 col.vec.severity <- ifelse( code.violations$Severity == "2", "#FFFF00FF", col.vec.severity)
 col.vec.severity <- ifelse( code.violations$Severity == "3", "#FFAA00FF", col.vec.severity)
 col.vec.severity <- ifelse( code.violations$Severity == "4", "#FF5500FF", col.vec.severity)
 col.vec.severity <- ifelse( code.violations$Severity == "5", "#FF0000FF", col.vec.severity)
-col.vec.severity <- ifelse( code.violations$Severity == "0", "gray10", col.vec.severity)
+col.vec.severity <- ifelse( code.violations$Severity == "FALSE", "gray10", col.vec.severity)
 
 #color vector time between open closed - TOC
 
@@ -82,6 +75,22 @@ violation.description <- code.violations$Code
 
 my.server <- function(input, output) 
 {  
+  
+  col.vec <- reactive({
+    
+    if( input$color == "Severity" ) 
+    {
+      col.vec.severity
+    }  
+    if(input$color == "Open/Closed")
+    {
+      col.vec.open.closed
+    }
+    if( input$color == "Time to Close")
+    {
+      col.vec.TOC
+    }
+  })
   output$mymap <- renderLeaflet({
     
     # build base map on load
@@ -90,23 +99,13 @@ my.server <- function(input, output)
       addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
       setView(lng=-76.13, lat=43.03, zoom=13) %>%
       setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
-    
+ 
+       
    
-    # syr.map <- addCircles( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=col.vec )
-    
-    output$color <- renderPlot({
-    
-    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col = input$color, popup=violation.description )
-    
-    syr.map
+    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=col.vec, popup = violation.description )
     
   })
-  })
-  
 }
-
-
-
 
 ## UI
 
@@ -154,7 +153,7 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                                        start = as.Date("2010-01-01"), end = as.Date("2013-07-01")),
                                                         
                                                         selectInput("color", "Colour by:",
-                                                                    choices=list("Open/Closed" = "col.vec.open.closed", "Severity" = "col.vec.severity", "Time to Close" = "col.vec.TOC")), #"Days to Comply")),
+                                                                    choices=list("Open/Closed", "Severity", "Time to Close")), #"Days to Comply")),
                                                 
                                                         
                                                         sliderInput("slider", label="Severity:",
@@ -235,8 +234,8 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                               
                               
                     ) # end of tabPanel "Map"
-                    
-))
+                    ))  
+
 
 
 
@@ -250,3 +249,8 @@ shinyApp( ui=my.ui, server=my.server )
 #     stroke = TRUE, color = "#03F", weight = 5, opacity = 0.5, fill = TRUE, 
 #     fillColor = color, fillOpacity = 0.2, dashArray = NULL, popup = NULL, 
 #     options = pathOptions(), data = getMapData(map))
+
+
+
+
+
