@@ -41,31 +41,7 @@ lat.lon <- code.violations[ 5000:10000 , c("lat","lon") ] # sample for dev purpo
 
 lat.lon <- na.omit( lat.lon )
 
-#static color vectors
 
-#color vector open closed
-col.vec.open.closed <- NULL
-col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Open", "orange", NA)
-col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Closed", "gray25", col.vec.open.closed  )
-
-col.vec.severity <- NULL
-col.vec.severity <- ifelse( code.violations$Severity == "1", "#FFFF80FF", NA )
-col.vec.severity <- ifelse( code.violations$Severity == "2", "#FFFF00FF", col.vec.severity)
-col.vec.severity <- ifelse( code.violations$Severity == "3", "#FFAA00FF", col.vec.severity)
-col.vec.severity <- ifelse( code.violations$Severity == "4", "#FF5500FF", col.vec.severity)
-col.vec.severity <- ifelse( code.violations$Severity == "5", "#FF0000FF", col.vec.severity)
-col.vec.severity <- ifelse( code.violations$Severity == "FALSE", "gray10", col.vec.severity)
-
-#color vector time between open closed - TOC
-
-col.vec.TOC <- NULL
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 0 & code.violations$TimeBetweenOC <= 60, "#FF0000FF", NA )
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 60 & code.violations$TimeBetweenOC <= 123, "#FF4000FF", col.vec.TOC)
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 123 & code.violations$TimeBetweenOC <= 186, "#FF8000FF", col.vec.TOC)
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 186 & code.violations$TimeBetweenOC <=249, "#FFBF00FF", col.vec.TOC)
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 249 & code.violations$TimeBetweenOC <= 312, "#FFFF00FF", col.vec.TOC)
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 312 & code.violations$TimeBetweenOC <= 400, "FFFF80FF", col.vec.TOC)
-col.vec.TOC <- ifelse( code.violations$TimeBetweenOC == 9999, "gray10", col.vec.TOC)
 
 #pop up 
 violation.description <- code.violations$Code 
@@ -75,22 +51,48 @@ violation.description <- code.violations$Code
 
 my.server <- function(input, output) 
 {  
+  #static color vectors
   
-  col.vec <- reactive({
+  #color vector open closed
+  col.vec.open.closed <- NULL
+  col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Open", "orange", NA)
+  col.vec.open.closed <- ifelse( code.violations$Violation.Status == "Closed", "blanchedalmond", col.vec.open.closed  )
+  
+  #color vector severity
+  col.vec.severity <- NULL
+  col.vec.severity <- ifelse( code.violations$Severity == "1", "thistle", NA )
+  col.vec.severity <- ifelse( code.violations$Severity == "2", "orchid", col.vec.severity)
+  col.vec.severity <- ifelse( code.violations$Severity == "3", "mediumorchid", col.vec.severity)
+  col.vec.severity <- ifelse( code.violations$Severity == "4", "darkorchid", col.vec.severity)
+  col.vec.severity <- ifelse( code.violations$Severity == "5", "purple", col.vec.severity)
+  col.vec.severity <- ifelse( code.violations$Severity == "FALSE", "whitesmoke", col.vec.severity)
+  
+  #color vector time between open closed - TOC
+  col.vec.TOC <- NULL
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 0 & code.violations$TimeBetweenOC <= 60, "skyblue", NA )
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 60 & code.violations$TimeBetweenOC <= 123, "deepskyblue", col.vec.TOC)
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 123 & code.violations$TimeBetweenOC <= 186, "dodgerblue", col.vec.TOC)
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 186 & code.violations$TimeBetweenOC <=249, "royalblue", col.vec.TOC)
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 249 & code.violations$TimeBetweenOC <= 312, "navy", col.vec.TOC)
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 312 & code.violations$TimeBetweenOC <= 400, "midnightblue", col.vec.TOC)
+  col.vec.TOC <- ifelse( code.violations$TimeBetweenOC == 9999, "whitesmoke", col.vec.TOC)
+   
+ colvec <- reactive({
     
     if( input$color == "Severity" ) 
     {
-      col.vec.severity
+      return(col.vec.severity)
     }  
     if(input$color == "Open/Closed")
     {
-      col.vec.open.closed
+      return(col.vec.open.closed)
     }
     if( input$color == "Time to Close")
     {
-      col.vec.TOC
+      return(col.vec.TOC)
     }
   })
+  
   output$mymap <- renderLeaflet({
     
     # build base map on load
@@ -99,10 +101,9 @@ my.server <- function(input, output)
       addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
       setView(lng=-76.13, lat=43.03, zoom=13) %>%
       setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
+  
  
-       
-   
-    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=col.vec, popup = violation.description )
+    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=colvec(), popup = violation.description )
     
   })
 }
