@@ -11,10 +11,10 @@ code.violations <- merge(code.violations, code.severity, by.x = "Code", by.y = "
 code.violations$Severity[is.na(code.violations$Severity)] <- "FALSE"  #this makes the NA in severity 0
 
 #Convert to time class
-code.violations$Violation.Date <- as.Date(code.violations$Violation.Date,format = "%m/%d/%y")
-code.violations$Complaint.Close.Date <- as.Date(code.violations$Complaint.Close.Date, format = "%m/%d/%y")
-code.violations$Complaint.Date <- as.Date(code.violations$Complaint.Date, "%m/%d/%y")
-code.violations$Comply.By.Date <- as.Date(code.violations$Comply.By.Date, format = "%m/%d/%y")
+code.violations$Violation.Date <- as.Date(code.violations$Violation.Date,format = "%m/%d/%Y")
+code.violations$Complaint.Close.Date <- as.Date(code.violations$Complaint.Close.Date, format = "%m/%d/%Y")
+code.violations$Complaint.Date <- as.Date(code.violations$Complaint.Date, "%m/%d/%Y")
+code.violations$Comply.By.Date <- as.Date(code.violations$Comply.By.Date, format = "%m/%d/%Y")
 
 #new variables representing time between dates and getting rid of negative amounts (due to incorrect data entry)
 code.violations <- mutate(code.violations, TimeBetweenOCB = code.violations$Comply.By.Date - code.violations$Violation.Date)
@@ -77,35 +77,26 @@ my.server <- function(input, output)
       return(col.vec.TOC)
     }
   })
-  
- #datlat <- reactive({
-   
-  # if(code.violations$Violation.Date >= input$dates[1] & code.violations$Violation.Date <= input$dates[2])
-  # {
-  #   return(code.violations$lat)
-  # }
-  #})
- 
- #datlon <- reactive({
-   
-  # if(code.violations$Violation.Date >= input$dates[1] & code.violations$Violation.Date <= input$dates[2])
-  # {
-  #   return(code.violations$lon)
-  # }
-  # })
- 
+
+codesublon <- reactive({
+  these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
+  return(code.violations$lon[these])
+ })
+
+codesublat <- reactive({
+  these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
+  return(code.violations$lat[these])
+})
+
   output$mymap <- renderLeaflet({
     
     # build base map on load
-    
     syr.map <- leaflet(data=lat.lon ) %>% 
       addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17))  %>%
       setView(lng=-76.13, lat=43.03, zoom=13) %>%
       setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
-  
- 
-    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=colvec(), popup = violation.description )
     
+    syr.map <- addCircleMarkers( syr.map, lng = codesublon(), lat = codesublat(), col=colvec(), popup = violation.description )
   })
 }
 
