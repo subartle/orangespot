@@ -79,12 +79,14 @@ my.server <- function(input, output)
   })
 
 codesublon <- reactive({
-  these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
+  these <- code.violations$Violation.Date >= input$date1[[1]] & code.violations$Violation.Date <= input$date2[[1]]
+  these[ !is.na(these) ]
   return(code.violations$lon[these])
  })
 
 codesublat <- reactive({
-  these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
+  these <- code.violations$Violation.Date >= input$date1[[1]] & code.violations$Violation.Date <= input$date2[[1]]
+  these[ !is.na(these) ]
   return(code.violations$lat[these])
 })
 
@@ -133,9 +135,14 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                
                                                tabPanel("Controls",
                                                         
-                                                        dateRangeInput('dates',
-                                                                       label = 'Occurred between:',
-                                                                       start = as.Date("2011-01-01"), end = as.Date("2015-12-31")),
+                                                        dateInput('date1',
+                                                                       label = 'Start Date',
+                                                                       format = "yyyy-mm-dd",
+                                                                       value = "2014-01-01"),
+                                                        dateInput('date2',
+                                                                  label = "End Date",
+                                                                  format = "yyyy-mm-dd",
+                                                                  value = "2015-01-01"),
                                                         
                                                         selectInput("color", "Colour by:",
                                                                     choices=list("Open/Closed", "Severity", "Time to Close")), #"Days to Comply")),
