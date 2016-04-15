@@ -77,18 +77,6 @@ my.server <- function(input, output)
     }
   })
   
-  codesublon <- reactive({
-    these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
-    these <- these[ !is.na(these) ]
-    return(code.violations$lon[these])
-  })
-  
-  codesublat <- reactive({
-    these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
-    these <- these[ !is.na(these) ]
-    return(code.violations$lat[these])
-  })
-  
   output$mymap <- renderLeaflet({
     
     # build base map on load
@@ -97,7 +85,7 @@ my.server <- function(input, output)
       setView(lng=-76.13, lat=43.03, zoom=13) %>%
       setMaxBounds(lng1=-75, lat1=41, lng2=-77,  lat2=45)
     
-    syr.map <- addCircleMarkers( syr.map, lng = codesublon(), lat = codesublat(), col=colvec(), popup = violation.description )
+    syr.map <- addCircleMarkers( syr.map, lng = lat.lon$lon, lat = lat.lon$lat, col=colvec(), popup = violation.description )
   })
 }
 
@@ -133,11 +121,6 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                              tabsetPanel(
                                                
                                                tabPanel("Controls",
-                                                        
-                                                        dateRangeInput('dates',
-                                                                  label = 'Date Range:',
-                                                                  format = "yyyy-mm-dd",
-                                                                  start = "2011-01-01", end = "2016-01-01"),
                                                         
                                                         selectInput("color", "Colour by:",
                                                                     choices=list("Open/Closed", "Severity", "Time to Close")), #"Days to Comply")),
