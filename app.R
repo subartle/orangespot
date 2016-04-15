@@ -1,4 +1,3 @@
-
 library("dplyr")
 library("leaflet")
 library("shiny")
@@ -26,7 +25,7 @@ code.violations$TimeBetweenOC[code.violations$TimeBetweenOC < 0 ] <- NA
 code.violations$TimeBetweenOC[is.na(code.violations$TimeBetweenOC)] <- 9999  #this makes the NA in severity 0
 
 #lat.lon
-lat.lon <- code.violations[ 5000:10000 , c("lat","lon") ] # sample for dev purposes
+lat.lon <- code.violations[ 1:50000, c("lat","lon") ] # sample for dev purposes
 lat.lon <- na.omit( lat.lon )
 
 #pop up 
@@ -61,8 +60,8 @@ my.server <- function(input, output)
   col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 249 & code.violations$TimeBetweenOC <= 312, "navy", col.vec.TOC)
   col.vec.TOC <- ifelse( code.violations$TimeBetweenOC >= 312 & code.violations$TimeBetweenOC <= 400, "midnightblue", col.vec.TOC)
   col.vec.TOC <- ifelse( code.violations$TimeBetweenOC == 9999, "whitesmoke", col.vec.TOC)
-   
- colvec <- reactive({
+  
+  colvec <- reactive({
     
     if( input$color == "Severity" ) 
     {
@@ -77,19 +76,19 @@ my.server <- function(input, output)
       return(col.vec.TOC)
     }
   })
-
-codesublon <- reactive({
-  these <- code.violations$Violation.Date >= input$date1[[1]] & code.violations$Violation.Date <= input$date2[[1]]
-  these[ !is.na(these) ]
-  return(code.violations$lon[these])
- })
-
-codesublat <- reactive({
-  these <- code.violations$Violation.Date >= input$date1[[1]] & code.violations$Violation.Date <= input$date2[[1]]
-  these[ !is.na(these) ]
-  return(code.violations$lat[these])
-})
-
+  
+  codesublon <- reactive({
+    these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
+    these <- these[ !is.na(these) ]
+    return(code.violations$lon[these])
+  })
+  
+  codesublat <- reactive({
+    these <- code.violations$Violation.Date >= input$dates[[1]] & code.violations$Violation.Date <= input$dates[[2]]
+    these <- these[ !is.na(these) ]
+    return(code.violations$lat[these])
+  })
+  
   output$mymap <- renderLeaflet({
     
     # build base map on load
@@ -115,10 +114,10 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                 includeScript("./www/spin.min.js"),
                                 includeCSS("./www/styles.css")
                               ),
-
+                              
                               leafletOutput("mymap", width="100%", height="800" ), 
                               
-
+                              
                               absolutePanel( id = "controls", class = "panel panel-default", fixed = TRUE,
                                              draggable = TRUE, top = 100, left = "auto", right = 20, bottom = "auto",
                                              width = 360, height = "auto",
@@ -135,18 +134,14 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                
                                                tabPanel("Controls",
                                                         
-                                                        dateInput('date1',
-                                                                       label = 'Start Date',
-                                                                       format = "yyyy-mm-dd",
-                                                                       value = "2014-01-01"),
-                                                        dateInput('date2',
-                                                                  label = "End Date",
+                                                        dateRangeInput('dates',
+                                                                  label = 'Date Range:',
                                                                   format = "yyyy-mm-dd",
-                                                                  value = "2015-01-01"),
+                                                                  start = "2011-01-01", end = "2016-01-01"),
                                                         
                                                         selectInput("color", "Colour by:",
                                                                     choices=list("Open/Closed", "Severity", "Time to Close")), #"Days to Comply")),
-                                                
+                                                        
                                                         hr(class="thin"),
                                                         p("See About Tab",
                                                           a("", href="",
@@ -175,18 +170,18 @@ my.ui <- navbarPage("Orangespot", id="nav", collapsible=T,
                                                         ),
                                                         p("Project under development by ",
                                                           p("Susannah Bartlett & Rory Tikalsky under the guidance of Professor Jesse Lecy, Maxwell School of Citizenship and Public Affairs.",
-                                                          HTML("&mdash;"),
-                                                          "see the full code on ",
-                                                          a("github", href="http://github.com/subartle/orangespot",
-                                                            target="_blank"),
-                                                          "or run locally with:"
-                                                        ),
-                                                        pre("shiny::runGitHub('subartle/orangespot')"),
-                                                        hr(class="thin")
-                                               )
-                                               # end about panel
-                                             ) )
-        
-                    ) # end of tabPanel "Map"
+                                                            HTML("&mdash;"),
+                                                            "see the full code on ",
+                                                            a("github", href="http://github.com/subartle/orangespot",
+                                                              target="_blank"),
+                                                            "or run locally with:"
+                                                          ),
+                                                          pre("shiny::runGitHub('subartle/orangespot')"),
+                                                          hr(class="thin")
+                                                        )
+                                                        # end about panel
+                                               ) )
+                                             
+                              ) # end of tabPanel "Map"
                     ))  
 shinyApp( ui=my.ui, server=my.server )
